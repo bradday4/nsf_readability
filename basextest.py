@@ -1,51 +1,57 @@
 # %%
 
 import re
-from BaseXClient import BaseXClient
 import xml.etree.ElementTree as ET
 import pandas as pd
 import textstat
-import numpy as np
+#import numpy as np
+from BaseXClient import BaseXClient
 # %%
 # create session
-session = BaseXClient.Session('localhost', 1984, 'admin', 'admin')
+SESSION = BaseXClient.Session('localhost', 1984, 'admin', 'admin')
 try:
-    qry = session.query(
-        """element root { (for $x_0 in db:text("2018", "Standard Grant")/parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by $x_0/descendant::*:AwardEffectiveDate empty least return element award { (($x_0/descendant::*:AbstractNarration, $x_0/descendant::*:AwardEffectiveDate)) }) }""")
+    QRY = SESSION.query(
+        """element root { (for $x_0 in db:text("2018", "Standard Grant")/
+        parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by
+        $x_0/descendant::*:AwardEffectiveDate empty least return element award
+        { (($x_0/descendant::*:AbstractNarration, $x_0/descendant::*:
+        AwardEffectiveDate)) }) }"""
+    )
 # run query on database
-    response = qry.execute()
+    RESPONSE = QRY.execute()
 
 finally:
     # close session
-    if session:
-        session.close()
-        del session
+    if SESSION:
+        SESSION.close()
+        del SESSION
 
 # %%
 # unicode specific regex to remove <br/> and any other html tags
 #TAG_RE = re.compile(r'&lt[^&gt]+&gt;', re.UNICODE)
 TAG_RE = re.compile(r'<[^>]+>;')
 # Parse XML into lists
-root = ET.fromstring(response)
-abstract = []
-effDate = []
-for i in range(len(root)):
+ROOT = ET.fromstring(RESPONSE)
+ABSTRACT = []
+EFFDATE = []
+for i in enumerate(ROOT):
      # apply regex then remove nsf standard verbiage
-    temp = TAG_RE.sub(' ', root[i][0].text)
-    temp = temp.split(
+    TEMP = TAG_RE.sub(' ', ROOT[i][0].text)
+    TEMP = TEMP.split(
         '''This award reflects NSF's statutory mission''', 1)[0]
-    abstract.append(temp)
-    effDate.append(root[i][1].text)
+    ABSTRACT.append(TEMP)
+    EFFDATE.append(ROOT[i][1].text)
 # place lists into dataframe for easier manipulation
-df = pd.DataFrame({'effDate': effDate,
-                   'abstract': abstract})
+DF = pd.DataFrame({'effDate': EFFDATE,
+                   'abstract': ABSTRACT})
 # convert from text to date
-df['effDate'] = pd.to_datetime(df['effDate'])
+DF['effDate'] = pd.to_datetime(DF['effDate'])
+
 # %%
 
-stat = []
-for index, row in df.iterrows():
-     stat.append(textstat.flesch_reading_ease(row[1]))
+STAT = []
+for index, row in DF.iterrows():
+    STAT.append(textstat.flesch_reading_ease(row[1]))
 
 
-#%%
+# %%
