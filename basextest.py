@@ -11,12 +11,21 @@ from BaseXClient import BaseXClient
 SESSION = BaseXClient.Session('localhost', 1984, 'admin', 'admin')
 try:
     QRY = SESSION.query(
-        """element root { (for $x_0 in db:text("2018", "Standard Grant")/
-        parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by
-        $x_0/descendant::*:AwardEffectiveDate empty least return element award
-        { (($x_0/descendant::*:AbstractNarration, $x_0/descendant::*:
-        AwardEffectiveDate)) }) }"""
-    )
+        """element root { (for $x_1 in db:text("nsf_awards", "Standard Grant")/
+        parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by 
+        $x_1/descendant::*:AwardEffectiveDate empty least return 
+        if(((normalize-space(((: xs:string?, true :) $x_1/descendant::*:AbstractNarration)) != "") 
+        and (normalize-space(((: xs:string?, true :) $x_1/descendant::*:AwardEffectiveDate)) != ""))) 
+        then element award { (($x_1/descendant::*:AbstractNarration, $x_1/descendant::*:AwardEffectiveDate)) } 
+        else ()) }"""
+        )
+    # QRY = SESSION.query(
+    #     """element root { (for $x_0 in db:text("2018", "Standard Grant")/
+    #     parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by
+    #     $x_0/descendant::*:AwardEffectiveDate empty least return element award
+    #     { (($x_0/descendant::*:AbstractNarration, $x_0/descendant::*:
+    #     AwardEffectiveDate)) }) }"""
+    # )
 # run query on database
     RESPONSE = QRY.execute()
 
@@ -34,9 +43,10 @@ TAG_RE = re.compile(r'<[^>]+>;')
 ROOT = ET.fromstring(RESPONSE)
 ABSTRACT = []
 EFFDATE = []
-for i in enumerate(ROOT):
+for i in range(len(ROOT)):
      # apply regex then remove nsf standard verbiage
     TEMP = TAG_RE.sub(' ', ROOT[i][0].text)
+    TEMP = re.sub(r"\s+", " ", TEMP)
     TEMP = TEMP.split(
         '''This award reflects NSF's statutory mission''', 1)[0]
     ABSTRACT.append(TEMP)
