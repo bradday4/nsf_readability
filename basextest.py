@@ -3,9 +3,9 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 import textstat
-import abstract_cleanup as AC
-#import numpy as np
 from BaseXClient import BaseXClient
+import abstract_cleanup as AC
+
 # %%
 # create session
 SESSION = BaseXClient.Session('localhost', 1984, 'admin', 'admin')
@@ -29,18 +29,13 @@ finally:
         del SESSION
 
 # %%
-# unicode specific regex to remove <br/> and any other html tags
-#TAG_RE = re.compile(r'&lt[^&gt]+&gt;', re.UNICODE)
-
 # Parse XML into lists
 ROOT = ET.fromstring(RESPONSE)
 ABSTRACT = []
 EFFDATE = []
 for i in range(len(ROOT)):
-     # apply regex then remove nsf standard verbiage
-    TEMP = ROOT[i][0].text
-    TEMP = AC.cleanup_pretagger_all(TEMP)
-    ABSTRACT.append(TEMP)
+     # cleanup abstract
+    ABSTRACT.append(AC.cleanup_pretagger_all(ROOT[i][0].text))
     EFFDATE.append(ROOT[i][1].text)
 # place lists into dataframe for easier manipulation
 DF = pd.DataFrame({'effDate': EFFDATE,
