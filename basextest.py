@@ -51,7 +51,8 @@ DF = pd.DataFrame({'effDate': EFFDATE,
                    'abstract': ABSTRACT})
 # convert from text to date
 DF['effDate'] = pd.to_datetime(DF['effDate'])
-
+# drop duplicate abstracts from dataset
+DF.drop_duplicates(subset= 'abstract',keep= 'first', inplace= True)
 # %%
 with open('cleaned_abstracts.txt','w',encoding='utf-8') as text_file:
     for abstract in DF['abstract']:
