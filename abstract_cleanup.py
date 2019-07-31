@@ -17,30 +17,23 @@ def cleanup_pretagger_all(text):
     text = text.replace('i.e.', '')
     text = text.replace('[?]', '')
     text = cleanup_text_ends_with_letters(text)
-#    print(text)
     text = cleanup_latin_names(text)
-#    print(text)
-
     text = cleanup_sentence_ends_with_etc(text)
     text = cleanup_remove_genes(text)
     text = cleanup_remove_decimal_numbers(text)
-#    print(text)
-#    print(text)
     text = cleanup_replace_hyphens(text)
-#    print(text)
     text = cleanup_remove_abrevs(text)
-#    print(text)
     text = cleanup_one_letter_words(text)
-#    print(text)
     text = cleanup_sentence_ends_in_number(text)
     text = cleanup_copyright_sentences(text)
-#    print(text)
     text = cleanup_sentence_with_missing_spaces(text)
     text = cleanup_remove_one_word_sentences(text)
-#    print(text)
     text = cleanup_add_space_after_period(text)
     text = cleanup_remove_extra_white_spaces(text)
-#    print(text)
+    text = cleanup_multi_white_spaces(text)
+    text = cleanup_split_nsf_verbage(text)
+    text = cleanup_remove_html_tags(text)
+    
     # Remove + at the start
     # (if it is still there - gets removed if the first word was an abbreviation)
     if text[0] == '+':
@@ -152,7 +145,7 @@ def cleanup_remove_abrevs(text):
             # remove whenever it occurs.
             # leave the second \W (modirfied to include hyphen). (e.g. if " NJNJA.", it returns '.')
             text = text[0:reinfo.start()+1] + text[reinfo.end():]
-#    print(text)
+    #    print(text)
     # This string takes care of things like MyPy
     restr = re.compile(r'[\W][A-Z0-9]*[a-z]+[A-Z0-9\-]+[a-zA-Z0-9\-]*')
     # Get number of times it occurs
@@ -164,7 +157,7 @@ def cleanup_remove_abrevs(text):
             # remove whenever it occurs.
             # leave the second \W (modirfied to include hyphen). (e.g. if " NJNJA.", it returns '.')
             text = text[0:reinfo.start()+1] + text[reinfo.end():]
-#    print(text)
+    #    print(text)
     # This string removes any remaining numbers
     restr = re.compile('[0-9]+')
     # Get number of times it occurs
@@ -174,7 +167,7 @@ def cleanup_remove_abrevs(text):
         for _ in range(0, len(number_occurs)):
             reinfo = restr.search(text)
             text = text[0:reinfo.start()] + text[reinfo.end():]
-#    print(text)
+    #    print(text)
     return text
 
 def cleanup_remove_genes(text):
@@ -245,7 +238,7 @@ def cleanup_text_ends_with_letters(text):
     sentance or (in short abstract) entire text. Also fixes any occuranges where
     it might be ending in: "words " and adds a period to this as well.
     But in a case where it ends with "words. " , nothing will be added.
-'''
+    '''
     # Find number occurances this occurs
     restr = re.compile(r'\w[\w ]*$')
     if restr.search(text):
@@ -368,3 +361,31 @@ def identify_bad_abstracts(text):
     if restr2.search(text):
         keep = 0
     return keep
+
+def cleanup_multi_white_spaces(text):
+    '''
+    Remove multiple white spaces
+    e.g science       and engineering --> science and engineering
+    '''
+    # regex for repeated whitespace
+    restr = re.compile(r"\s+")
+    text = restr.sub(' ', text)
+    return text
+
+def cleanup_split_nsf_verbage(text):
+    '''
+    Remove NSF's standard verbage about it's statutory mission
+    '''
+    # split text on matched verbage and keep first portion
+    text = text.split(
+        '''This award reflects NSF's statutory mission''', 1)[0]
+    return text
+
+def cleanup_remove_html_tags(text):
+    '''
+    Remove html tags
+    e.g science </br> and engineering --> science and engineering
+    '''
+    restr = re.compile(r'<[^>]+>;')
+    text = restr.sub(' ', text)
+    return text
