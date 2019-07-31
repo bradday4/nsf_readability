@@ -33,7 +33,8 @@ def cleanup_pretagger_all(text):
     text = cleanup_multi_white_spaces(text)
     text = cleanup_split_nsf_verbage(text)
     text = cleanup_remove_html_tags(text)
-    
+    text = text.replace(r"*** //", '')
+
     # Remove + at the start
     # (if it is still there - gets removed if the first word was an abbreviation)
     if text[0] == '+':
