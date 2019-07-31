@@ -4,6 +4,7 @@ import re
 import xml.etree.ElementTree as ET
 import pandas as pd
 import textstat
+import abstract_cleanup as AC
 #import numpy as np
 from BaseXClient import BaseXClient
 # %%
@@ -19,13 +20,6 @@ try:
         then element award { (($x_1/descendant::*:AbstractNarration, $x_1/descendant::*:AwardEffectiveDate)) } 
         else ()) }"""
         )
-    # QRY = SESSION.query(
-    #     """element root { (for $x_0 in db:text("2018", "Standard Grant")/
-    #     parent::*:Value/parent::*:AwardInstrument/parent::*:Award order by
-    #     $x_0/descendant::*:AwardEffectiveDate empty least return element award
-    #     { (($x_0/descendant::*:AbstractNarration, $x_0/descendant::*:
-    #     AwardEffectiveDate)) }) }"""
-    # )
 # run query on database
     RESPONSE = QRY.execute()
 
@@ -49,6 +43,7 @@ for i in range(len(ROOT)):
     TEMP = re.sub(r"\s+", " ", TEMP)
     TEMP = TEMP.split(
         '''This award reflects NSF's statutory mission''', 1)[0]
+    TEMP = AC.cleanup_pretagger_all(TEMP)
     ABSTRACT.append(TEMP)
     EFFDATE.append(ROOT[i][1].text)
 # place lists into dataframe for easier manipulation
@@ -58,7 +53,9 @@ DF = pd.DataFrame({'effDate': EFFDATE,
 DF['effDate'] = pd.to_datetime(DF['effDate'])
 
 # %%
-
+with open('cleaned_abstracts.txt','w',encoding='utf-8') as text_file:
+    for abstract in DF['abstract']:
+        text_file.write(abstract+'\n\n')
 STAT = []
 for index, row in DF.iterrows():
     STAT.append(textstat.flesch_reading_ease(row[1]))
