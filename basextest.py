@@ -1,3 +1,6 @@
+'''
+testing script for querying baseX database and generating dataframe of abstracts
+'''
 # %%
 
 import xml.etree.ElementTree as ET
@@ -31,19 +34,16 @@ finally:
 # %%
 # Parse XML into lists
 ROOT = ET.fromstring(RESPONSE)
-ABSTRACT = []
-EFFDATE = []
-for i in range(len(ROOT)):
-     # cleanup abstract
-    ABSTRACT.append(AC.cleanup_pretagger_all(ROOT[i][0].text))
-    EFFDATE.append(ROOT[i][1].text)
+ABSTRACT = [AC.cleanup_pretagger_all(i.text) for i in ROOT.iter(tag='AbstractNarration')]
+EFFDATE = [i.text for i in ROOT.iter(tag='AwardEffectiveDate')]
+
 # place lists into dataframe for easier manipulation
 DF = pd.DataFrame({'effDate': EFFDATE,
                    'abstract': ABSTRACT})
 # convert from text to date
 DF['effDate'] = pd.to_datetime(DF['effDate'])
 # drop duplicate abstracts from dataset
-DF.drop_duplicates(subset= 'abstract',keep='first', inplace=True)
+DF.drop_duplicates(subset='abstract',keep='first', inplace=True)
 # %%
 with open('cleaned_abstracts.txt', 'w', encoding='utf-8') as text_file:
     for abstract in DF['abstract']:
