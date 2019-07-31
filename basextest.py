@@ -1,6 +1,5 @@
 # %%
 
-import re
 import xml.etree.ElementTree as ET
 import pandas as pd
 import textstat
@@ -32,17 +31,14 @@ finally:
 # %%
 # unicode specific regex to remove <br/> and any other html tags
 #TAG_RE = re.compile(r'&lt[^&gt]+&gt;', re.UNICODE)
-TAG_RE = re.compile(r'<[^>]+>;')
+
 # Parse XML into lists
 ROOT = ET.fromstring(RESPONSE)
 ABSTRACT = []
 EFFDATE = []
 for i in range(len(ROOT)):
      # apply regex then remove nsf standard verbiage
-    TEMP = TAG_RE.sub(' ', ROOT[i][0].text)
-    TEMP = re.sub(r"\s+", " ", TEMP)
-    TEMP = TEMP.split(
-        '''This award reflects NSF's statutory mission''', 1)[0]
+    TEMP = ROOT[i][0].text
     TEMP = AC.cleanup_pretagger_all(TEMP)
     ABSTRACT.append(TEMP)
     EFFDATE.append(ROOT[i][1].text)
@@ -52,9 +48,9 @@ DF = pd.DataFrame({'effDate': EFFDATE,
 # convert from text to date
 DF['effDate'] = pd.to_datetime(DF['effDate'])
 # drop duplicate abstracts from dataset
-DF.drop_duplicates(subset= 'abstract',keep= 'first', inplace= True)
+DF.drop_duplicates(subset= 'abstract',keep='first', inplace=True)
 # %%
-with open('cleaned_abstracts.txt','w',encoding='utf-8') as text_file:
+with open('cleaned_abstracts.txt', 'w', encoding='utf-8') as text_file:
     for abstract in DF['abstract']:
         text_file.write(abstract+'\n\n')
 STAT = []
