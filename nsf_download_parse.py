@@ -65,8 +65,8 @@ class UrlGetter:
         beggining_year, end_year = year_range
         end_year = end_year+1
         # check years are within range
-        if 1959 <= beggining_year <= 2019 and \
-            1959 <= end_year <= 2019 and \
+        if 1959 <= beggining_year <= 2020 and \
+            1959 <= end_year <= 2020 and \
             beggining_year <= end_year:
 
             years = range(beggining_year, end_year)
