@@ -3,7 +3,7 @@
 Query baseX database and generating dataframe of abstracts
 '''
 # %%
-
+from time import time
 import xml.etree.ElementTree as ET
 import pandas as pd
 import textstat
@@ -38,7 +38,10 @@ finally:
 # %%
 # Parse XML into lists
 ROOT = ET.fromstring(RESPONSE)
+start = time()
 ABSTRACT = [AC.cleanup_pretagger_all(i.text) for i in ROOT.iter(tag='AbstractNarration')]
+print('\n'+f"Total time to download: {time() - start}")
+
 EFFDATE = [i.text for i in ROOT.iter(tag='AwardEffectiveDate')]
 
 # place lists into dataframe for easier manipulation
